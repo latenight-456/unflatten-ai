@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unflatten AI</title>
+    <meta name="description" content="An AI-powered design tool that decomposes flat images into editable layers using computer vision and generative analysis." />
+    <meta property="og:title" content="Unflatten AI" />
+    <meta property="og:description" content="An AI-powered design tool that decomposes flat images into editable layers using computer vision and generative analysis." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: 'rgba(var(--brand-rgb), 0.05)',
+                100: 'rgba(var(--brand-rgb), 0.1)',
+                200: 'rgba(var(--brand-rgb), 0.2)',
+                300: 'rgba(var(--brand-rgb), 0.3)',
+                400: 'rgba(var(--brand-rgb), 0.4)',
+                500: 'rgb(var(--brand-rgb))',
+                600: 'rgba(var(--brand-rgb), 0.8)',
+                700: 'rgba(var(--brand-rgb), 0.7)',
+                800: 'rgba(var(--brand-rgb), 0.6)',
+                900: 'rgba(var(--brand-rgb), 0.5)',
+              },
+              dark: {
+                800: '#1e1e1e',
+                900: '#121212',
+                950: '#0a0a0a'
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      :root {
+        --brand-rgb: 14, 165, 233; /* Default brand-500: #0ea5e9 */
+      }
+      body {
+        background-color: #0a0a0a;
+        color: #e5e5e5;
+      }
+      /* Custom scrollbar for panels */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1e1e1e; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333; 
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #444; 
+      }
+      .checkerboard {
+        background-color: #1e1e1e;
+        background-image:
+          linear-gradient(45deg, #252525 25%, transparent 25%),
+          linear-gradient(-45deg, #252525 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #252525 75%),
+          linear-gradient(-45deg, transparent 75%, #252525 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "jszip": "https://esm.run/jszip"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

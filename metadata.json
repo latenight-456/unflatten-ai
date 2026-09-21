@@ -1,0 +1,6 @@
+{
+  "name": "Unflatten AI",
+  "description": "An AI-powered design tool that decomposes flat images into editable layers using computer vision and generative analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
