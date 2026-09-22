@@ -5,13 +5,25 @@ export const analyzeImageStructure = async (
   mimeType: string
 ): Promise<DetectedElement[]> => {
   try {
-    const response = await fetch("/api/gemini/analyze", {
+    let response = await fetch("/api/gemini/analyze", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ base64Image, mimeType }),
     });
+
+    // If 404, retry against alias /api/analyze
+    if (response.status === 404) {
+      console.warn("Retrying analyze against alias /api/analyze...");
+      response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ base64Image, mimeType }),
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
