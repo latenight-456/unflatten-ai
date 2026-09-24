@@ -1,16 +1,26 @@
 import { DetectedElement, LayerType } from "../types";
+import { downscaleForApi } from "../utils/imageDownscale";
 
 export const analyzeImageStructure = async (
   base64Image: string,
   mimeType: string
 ): Promise<DetectedElement[]> => {
   try {
+    const inputDataUrl = base64Image.startsWith("data:")
+      ? base64Image
+      : `data:${mimeType || "image/jpeg"};base64,${base64Image}`;
+    const downscaled = await downscaleForApi(inputDataUrl);
+    const downscaledBase64 = downscaled.dataUrl.includes(",")
+      ? downscaled.dataUrl.split(",")[1]
+      : downscaled.dataUrl;
+    const payloadMimeType = downscaled.mimeType || mimeType;
+
     let response = await fetch("/api/gemini/analyze", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ base64Image, mimeType }),
+      body: JSON.stringify({ base64Image: downscaledBase64, mimeType: payloadMimeType }),
     });
 
     // If 404, retry against alias /api/analyze
@@ -21,8 +31,12 @@ export const analyzeImageStructure = async (
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ base64Image, mimeType }),
+        body: JSON.stringify({ base64Image: downscaledBase64, mimeType: payloadMimeType }),
       });
+    }
+
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
     }
 
     if (!response.ok) {
@@ -47,12 +61,15 @@ export const generateElementImage = async (
     let base64Reference: string | undefined = undefined;
     let mimeType: string | undefined = undefined;
 
-    if (referenceImageSrc && referenceImageSrc.startsWith("data:")) {
-      const match = referenceImageSrc.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
-        mimeType = match[1];
-        base64Reference = match[2];
-      }
+    if (referenceImageSrc) {
+      const inputDataUrl = referenceImageSrc.startsWith("data:")
+        ? referenceImageSrc
+        : `data:image/jpeg;base64,${referenceImageSrc}`;
+      const downscaled = await downscaleForApi(inputDataUrl);
+      mimeType = downscaled.mimeType;
+      base64Reference = downscaled.dataUrl.includes(",")
+        ? downscaled.dataUrl.split(",")[1]
+        : downscaled.dataUrl;
     }
 
     const response = await fetch("/api/gemini/generate-image", {
@@ -68,6 +85,10 @@ export const generateElementImage = async (
         aspectRatio 
       }),
     });
+
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -92,6 +113,10 @@ export const regeneratePrompt = async (currentPrompt: string, layerType: string)
       body: JSON.stringify({ currentPrompt, layerType }),
     });
 
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -115,6 +140,10 @@ export const mergeLayerPrompts = async (prompts: string[]): Promise<string> => {
       body: JSON.stringify({ prompts }),
     });
 
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -135,13 +164,31 @@ export const reanalyzeLayer = async (
   currentLabel: string
 ): Promise<{ label: string; visual_prompt: string; color_palette?: string[]; ocr_text?: string; confidence?: number }> => {
   try {
+    const inputDataUrl = base64Image.startsWith("data:")
+      ? base64Image
+      : `data:${mimeType || "image/jpeg"};base64,${base64Image}`;
+    const downscaled = await downscaleForApi(inputDataUrl);
+    const downscaledBase64 = downscaled.dataUrl.includes(",")
+      ? downscaled.dataUrl.split(",")[1]
+      : downscaled.dataUrl;
+    const payloadMimeType = downscaled.mimeType || mimeType;
+
     const response = await fetch("/api/gemini/reanalyze-layer", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ base64Image, mimeType, currentType, currentLabel }),
+      body: JSON.stringify({ 
+        base64Image: downscaledBase64, 
+        mimeType: payloadMimeType, 
+        currentType, 
+        currentLabel 
+      }),
     });
+
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -160,13 +207,26 @@ export const deduceColorPalette = async (
   mimeType: string
 ): Promise<{ themeName: string; themeDescription: string; harmony: string; colors: Array<{ hex: string; name: string; role: string; isDark: boolean }> }> => {
   try {
+    const inputDataUrl = base64Image.startsWith("data:")
+      ? base64Image
+      : `data:${mimeType || "image/jpeg"};base64,${base64Image}`;
+    const downscaled = await downscaleForApi(inputDataUrl);
+    const downscaledBase64 = downscaled.dataUrl.includes(",")
+      ? downscaled.dataUrl.split(",")[1]
+      : downscaled.dataUrl;
+    const payloadMimeType = downscaled.mimeType || mimeType;
+
     const response = await fetch("/api/gemini/deduce-palette", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ base64Image, mimeType }),
+      body: JSON.stringify({ base64Image: downscaledBase64, mimeType: payloadMimeType }),
     });
+
+    if (response.status === 413) {
+      throw new Error("Image too large. Try a smaller image.");
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -179,4 +239,5 @@ export const deduceColorPalette = async (
     throw error;
   }
 };
+
 
