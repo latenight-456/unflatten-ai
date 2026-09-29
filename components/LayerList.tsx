@@ -13,10 +13,8 @@ interface LayerListProps {
   onToggleVisibility: (id: string) => void;
   onDownloadLayer: (layer: Layer) => void;
   onClose?: () => void;
-  activeTab: 'layers' | 'json' | 'generated';
-  onTabChange: (tab: 'layers' | 'json' | 'generated') => void;
-  onMergeAndGenerate: () => void;
-  isMerging: boolean;
+  activeTab: 'layers' | 'json';
+  onTabChange: (tab: 'layers' | 'json') => void;
   onReanalyzeLayer?: (id: string) => void;
   imageMetadata?: ImageMetadata | null;
   palette?: DeducedPalette | null;
@@ -60,8 +58,6 @@ export const LayerList: React.FC<LayerListProps> = ({
   onClose,
   activeTab,
   onTabChange,
-  onMergeAndGenerate,
-  isMerging,
   onReanalyzeLayer,
   imageMetadata,
   palette
@@ -69,17 +65,9 @@ export const LayerList: React.FC<LayerListProps> = ({
   const [expandedJsonLayerId, setExpandedJsonLayerId] = useState<string | null>(null);
   const [copiedLayerId, setCopiedLayerId] = useState<string | null>(null);
 
-  const displayedLayers = layers.filter(l => {
-    if (activeTab === 'generated') {
-      return l.type === LayerType.GENERATED;
-    } else {
-      return l.type !== LayerType.GENERATED && l.type !== LayerType.COMPOSITION;
-    }
-  });
-
+  const displayedLayers = layers.filter(l => l.type !== LayerType.COMPOSITION);
   const compositionLayer = layers.find(l => l.type === LayerType.COMPOSITION);
-  const regularLayersCount = layers.filter(l => l.type !== LayerType.GENERATED && l.type !== LayerType.COMPOSITION).length;
-  const generatedLayersCount = layers.filter(l => l.type === LayerType.GENERATED).length;
+  const regularLayersCount = displayedLayers.length;
 
   const handleCopyLayerJson = async (layer: Layer, idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,7 +106,7 @@ export const LayerList: React.FC<LayerListProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-dark-900 w-full overflow-hidden">
-      {/* Sub-Tabs: Layers / JSON Breakdown / Generated */}
+      {/* Sub-Tabs: Layers / JSON Breakdown */}
       <div className="flex border-b border-dark-800 bg-[#0f1117] shrink-0">
         <button 
           className={`flex-1 py-2.5 px-2 text-[11px] font-semibold text-center transition-colors cursor-pointer ${
@@ -142,16 +130,6 @@ export const LayerList: React.FC<LayerListProps> = ({
           <Code className="w-3 h-3" />
           <span>JSON</span>
         </button>
-        <button 
-          className={`flex-1 py-2.5 px-2 text-[11px] font-semibold text-center transition-colors cursor-pointer ${
-            activeTab === 'generated' 
-              ? 'text-brand-400 border-b-2 border-brand-500 bg-brand-500/5' 
-              : 'text-gray-400 hover:text-gray-200'
-          }`} 
-          onClick={() => onTabChange('generated')}
-        >
-          Generated {generatedLayersCount > 0 && `(${generatedLayersCount})`}
-        </button>
       </div>
 
       {/* 1. JSON BREAKDOWN TAB */}
@@ -167,39 +145,26 @@ export const LayerList: React.FC<LayerListProps> = ({
         </div>
       )}
 
-      {/* 2. LAYERS & GENERATED TABS */}
-      {activeTab !== 'json' && (
+      {/* 2. LAYERS TAB */}
+      {activeTab === 'layers' && (
         <>
-          {activeTab === 'layers' && (
-            <div className="p-2 border-b border-dark-800 space-y-2 shrink-0 bg-[#0d0f14]">
-              {compositionLayer && (
-                <button 
-                  onClick={() => onSelectLayer(compositionLayer.id, false)} 
-                  className={`w-full py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all cursor-pointer ${
-                    selectedLayerIds.includes(compositionLayer.id) 
-                      ? 'bg-brand-600 text-white shadow-lg' 
-                      : 'bg-brand-900/20 border border-brand-500/20 text-brand-300 hover:bg-brand-900/30'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <span className="text-xs font-medium">Full Remix Master Prompt</span>
-                </button>
-              )}
-              {selectedLayerIds.length >= 2 && (
-                <Button 
-                  variant="primary" 
-                  size="sm" 
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-xs" 
-                  onClick={onMergeAndGenerate} 
-                  disabled={isMerging}
-                >
-                  {isMerging ? "Merging..." : `Group & Generate (${selectedLayerIds.length})`}
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="p-2 border-b border-dark-800 space-y-2 shrink-0 bg-[#0d0f14]">
+            {compositionLayer && (
+              <button 
+                onClick={() => onSelectLayer(compositionLayer.id, false)} 
+                className={`w-full py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                  selectedLayerIds.includes(compositionLayer.id) 
+                    ? 'bg-brand-600 text-white shadow-lg' 
+                    : 'bg-brand-900/20 border border-brand-500/20 text-brand-300 hover:bg-brand-900/30'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                <span className="text-xs font-medium">Full Remix Master Prompt</span>
+              </button>
+            )}
+          </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar min-h-0">
             {displayedLayers.length === 0 ? (

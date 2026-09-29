@@ -28,8 +28,6 @@ interface FullRemixPromptModalProps {
   onClose: () => void;
   rawPrompt: string;
   onSavePrompt: (newPrompt: string) => void;
-  onGeneratePrompt?: (prompt: string) => void;
-  isGenerating?: boolean;
   layers?: Layer[];
   palette?: DeducedPalette | null;
   activeStructure?: MasterPromptStructure;
@@ -41,8 +39,6 @@ export const FullRemixPromptModal: React.FC<FullRemixPromptModalProps> = ({
   onClose,
   rawPrompt,
   onSavePrompt,
-  onGeneratePrompt,
-  isGenerating = false,
   layers = [],
   palette = null,
   activeStructure = 'flyer_9_16',
@@ -736,20 +732,6 @@ export const FullRemixPromptModal: React.FC<FullRemixPromptModalProps> = ({
                 </>
               )}
             </button>
-
-            {/* Generate Image Button (Optional) */}
-            {onGeneratePrompt && (
-              <button
-                id="modal-generate-btn"
-                type="button"
-                onClick={() => onGeneratePrompt(fullPromptText)}
-                disabled={isGenerating}
-                className="px-4 sm:px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-black" />
-                <span>{isGenerating ? 'Generating...' : 'Generate Flyer Image'}</span>
-              </button>
-            )}
 
             <button
               id="modal-done-btn"

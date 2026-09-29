@@ -103,158 +103,96 @@ const segmentationSchema = {
 };
 
 // Priority-ordered models for text and multimodal vision tasks
+// gemini-3.1-flash-lite has separate quota, high throughput, and reliable multimodal vision
 const VISION_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-flash-latest",
-  "gemini-3.8-flash",
-  "gemini-3.1-flash-lite"
+  "gemini-3.1-flash-lite",
+  "gemini-flash-latest"
 ];
 
 const TEXT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-flash-latest",
-  "gemini-3.8-flash",
-  "gemini-3.1-flash-lite"
+  "gemini-3.1-flash-lite",
+  "gemini-flash-latest"
 ];
 
-function generateFallbackLayers(base64Image?: string, mimeType?: string) {
-  return [
-    {
-      label: "Canvas Background & Atmosphere",
-      category: "background",
-      box_2d: [0, 0, 1000, 1000],
-      visual_prompt: "Atmospheric ambient background canvas with smooth lighting and balanced gradient texture.",
-      color_palette: ["#0B0F19", "#1E293B"],
-      ocr_text: null,
-      confidence: 0.95,
-      semantic_role: "ambient backdrop",
-      depth: "background",
-      z_index: 0,
-      attributes: ["full-bleed", "ambient-lighting"],
-      json_breakdown: {
-        layer_index: 1,
-        label: "Canvas Background & Atmosphere",
-        category: "background",
-        semantic_role: "ambient backdrop",
-        depth: "background",
-        z_index: 0,
-        bounding_box: { ymin: 0, xmin: 0, ymax: 1000, xmax: 1000, width_normalized: 1000, height_normalized: 1000 },
-        visual_prompt: "Atmospheric ambient background canvas with smooth lighting and balanced gradient texture.",
-        color_palette: ["#0B0F19", "#1E293B"],
-        ocr_text: null,
-        confidence: 0.95,
-        attributes: ["full-bleed", "ambient-lighting"]
-      }
-    },
-    {
-      label: "Main Visual Subject",
-      category: "object",
-      box_2d: [160, 160, 840, 840],
-      visual_prompt: "Prominent foreground focal visual element with detailed surface textures and balanced studio illumination.",
-      color_palette: ["#38BDF8", "#6366F1"],
-      ocr_text: null,
-      confidence: 0.92,
-      semantic_role: "primary focal subject",
-      depth: "foreground",
-      z_index: 1,
-      attributes: ["focal-point", "hero-asset"],
-      json_breakdown: {
-        layer_index: 2,
-        label: "Main Visual Subject",
-        category: "object",
-        semantic_role: "primary focal subject",
-        depth: "foreground",
-        z_index: 1,
-        bounding_box: { ymin: 160, xmin: 160, ymax: 840, xmax: 840, width_normalized: 680, height_normalized: 680 },
-        visual_prompt: "Prominent foreground focal visual element with detailed surface textures and balanced studio illumination.",
-        color_palette: ["#38BDF8", "#6366F1"],
-        ocr_text: null,
-        confidence: 0.92,
-        attributes: ["focal-point", "hero-asset"]
-      }
-    },
-    {
-      label: "Headline Typography",
-      category: "text",
-      box_2d: [40, 80, 200, 920],
-      visual_prompt: "High-contrast geometric display typography, clean visual kerning, modern editorial font weight.",
-      color_palette: ["#FFFFFF", "#E2E8F0"],
-      ocr_text: "UNFLATTEN.AI DECONSTRUCT",
-      confidence: 0.90,
-      semantic_role: "primary headline",
-      depth: "foreground",
-      z_index: 2,
-      attributes: ["title-banner", "typography"],
-      json_breakdown: {
-        layer_index: 3,
-        label: "Headline Typography",
-        category: "text",
-        semantic_role: "primary headline",
-        depth: "foreground",
-        z_index: 2,
-        bounding_box: { ymin: 40, xmin: 80, ymax: 200, xmax: 920, width_normalized: 840, height_normalized: 160 },
-        visual_prompt: "High-contrast geometric display typography, clean visual kerning, modern editorial font weight.",
-        color_palette: ["#FFFFFF", "#E2E8F0"],
-        ocr_text: "UNFLATTEN.AI DECONSTRUCT",
-        confidence: 0.90,
-        attributes: ["title-banner", "typography"]
-      }
-    },
-    {
-      label: "Accent Overlay Element",
-      category: "graphic_element",
-      box_2d: [780, 200, 920, 800],
-      visual_prompt: "Stylized modern graphic badge overlay with glowing subtle edge and clean vector framing.",
-      color_palette: ["#F59E0B", "#FBBF24"],
-      ocr_text: null,
-      confidence: 0.88,
-      semantic_role: "decorative accent",
-      depth: "foreground",
-      z_index: 3,
-      attributes: ["vector-badge", "accent-overlay"],
-      json_breakdown: {
-        layer_index: 4,
-        label: "Accent Overlay Element",
-        category: "graphic_element",
-        semantic_role: "decorative accent",
-        depth: "foreground",
-        z_index: 3,
-        bounding_box: { ymin: 780, xmin: 200, ymax: 920, xmax: 800, width_normalized: 600, height_normalized: 140 },
-        visual_prompt: "Stylized modern graphic badge overlay with glowing subtle edge and clean vector framing.",
-        color_palette: ["#F59E0B", "#FBBF24"],
-        ocr_text: null,
-        confidence: 0.88,
-        attributes: ["vector-badge", "accent-overlay"]
-      }
-    },
-    {
-      label: "Master Scene Blueprint",
-      category: "composition",
-      box_2d: [0, 0, 1000, 1000],
-      visual_prompt: "Unified editorial graphic composition featuring structured typographic balance, high-contrast focal subject, and cohesive color palette.",
-      color_palette: ["#0B0F19", "#38BDF8", "#FBBF24"],
-      ocr_text: null,
-      confidence: 0.98,
-      semantic_role: "master composition",
-      depth: "background",
-      z_index: 4,
-      attributes: ["full-canvas", "master-layout"],
-      json_breakdown: {
-        layer_index: 5,
-        label: "Master Scene Blueprint",
-        category: "composition",
-        semantic_role: "master composition",
-        depth: "background",
-        z_index: 4,
-        bounding_box: { ymin: 0, xmin: 0, ymax: 1000, xmax: 1000, width_normalized: 1000, height_normalized: 1000 },
-        visual_prompt: "Unified editorial graphic composition featuring structured typographic balance, high-contrast focal subject, and cohesive color palette.",
-        color_palette: ["#0B0F19", "#38BDF8", "#FBBF24"],
-        ocr_text: null,
-        confidence: 0.98,
-        attributes: ["full-canvas", "master-layout"]
-      }
+// Robustly normalizes bounding boxes from model responses
+// Handles 0..1 floats, 0..100 percentages, 0..1000 standard scale, and raw pixel dimensions
+function normalizeBoundingBox(rawBox: any, allItems?: any[]): [number, number, number, number] {
+  if (!Array.isArray(rawBox) || rawBox.length < 4) {
+    return [0, 0, 1000, 1000];
+  }
+
+  let nums = rawBox.slice(0, 4).map((v: any) => {
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
+  });
+
+  const maxVal = Math.max(...nums);
+  if (maxVal > 0 && maxVal <= 1.0) {
+    // Model returned 0.0 .. 1.0 normalized floats
+    nums = nums.map(v => v * 1000);
+  } else if (maxVal > 1.0 && maxVal <= 100.0 && nums.every((v: number) => v <= 100)) {
+    // Model returned 0 .. 100 percentage values
+    nums = nums.map(v => v * 10);
+  } else if (maxVal > 1000) {
+    // Model returned pixel values (e.g., 1080, 1920)
+    let maxY = 1000;
+    let maxX = 1000;
+    if (allItems && allItems.length > 0) {
+      allItems.forEach(it => {
+        if (Array.isArray(it.box_2d) && it.box_2d.length >= 4) {
+          const y1 = Number(it.box_2d[0]) || 0;
+          const x1 = Number(it.box_2d[1]) || 0;
+          const y2 = Number(it.box_2d[2]) || 0;
+          const x2 = Number(it.box_2d[3]) || 0;
+          maxY = Math.max(maxY, y1, y2);
+          maxX = Math.max(maxX, x1, x2);
+        }
+      });
+    } else {
+      maxY = Math.max(1000, nums[0], nums[2]);
+      maxX = Math.max(1000, nums[1], nums[3]);
     }
-  ];
+    nums[0] = (nums[0] / maxY) * 1000;
+    nums[2] = (nums[2] / maxY) * 1000;
+    nums[1] = (nums[1] / maxX) * 1000;
+    nums[3] = (nums[3] / maxX) * 1000;
+  }
+
+  let [ymin, xmin, ymax, xmax] = nums.map(v => Math.round(v));
+
+  // Swap inverted coordinates
+  if (ymin > ymax) {
+    const tmp = ymin;
+    ymin = ymax;
+    ymax = tmp;
+  }
+  if (xmin > xmax) {
+    const tmp = xmin;
+    xmin = xmax;
+    xmax = tmp;
+  }
+
+  // Clamp within 0..1000 bounds
+  ymin = Math.max(0, Math.min(1000, ymin));
+  xmin = Math.max(0, Math.min(1000, xmin));
+  ymax = Math.max(0, Math.min(1000, ymax));
+  xmax = Math.max(0, Math.min(1000, xmax));
+
+  // Ensure minimum dimensions (at least 20 units wide and tall)
+  if (ymax - ymin < 20) {
+    ymax = Math.min(1000, ymin + 30);
+    if (ymax - ymin < 20) {
+      ymin = Math.max(0, ymax - 30);
+    }
+  }
+  if (xmax - xmin < 20) {
+    xmax = Math.min(1000, xmin + 30);
+    if (xmax - xmin < 20) {
+      xmin = Math.max(0, xmax - 30);
+    }
+  }
+
+  return [ymin, xmin, ymax, xmax];
 }
 
 async function callGeminiWithFallback<T>(
@@ -295,24 +233,28 @@ app.post(["/api/gemini/analyze", "/api/analyze"], async (req, res) => {
     });
 
     const prompt = `
-      You are an expert graphic designer and visual perception engine.
-      Carefully analyze this exact uploaded image to deconstruct it into its real, visible constituent layers.
+      You are an expert graphic designer and computer vision perception engine.
+      Carefully analyze this exact uploaded image to deconstruct it into its real, visible constituent visual layers.
       
       Strict Decomposition Rules:
-      1. "composition": ALWAYS include exactly ONE "composition" element covering the entire image canvas ([0, 0, 1000, 1000]) providing a master visual blueprint of the overall image style.
-      2. "background": Identify the backdrop canvas, environment, or background surface ([ymin, xmin, ymax, xmax] usually [0, 0, 1000, 1000]).
-      3. "object": Identify all primary subjects, figures, characters, products, animals, or physical items visibly present in the image (e.g. "Person Reading Book", "Open Book", "Red Sweater", "Coffee Mug").
-      4. "text": ONLY identify "text" if there is ACTUAL readable written typography/text visibly rendered in the image.
-         CRITICAL: If the image does NOT contain readable text, DO NOT produce ANY "text" layers. Never invent words, placeholder titles, or non-existent slogans.
+      1. "composition": ALWAYS include exactly ONE "composition" element covering the entire canvas ([0, 0, 1000, 1000]) providing a master visual prompt blueprint describing the complete image style, mood, lighting, composition, and subject matter.
+      2. "background": Identify the backdrop canvas, environment, wall, or scenery surface ([ymin, xmin, ymax, xmax] usually [0, 0, 1000, 1000]).
+      3. "object": Identify all primary subjects, figures, characters, products, animals, or physical items visibly present in the image (e.g. "Person Reading Book", "Coffee Mug", "Cat Sitting", "Sports Car").
+      4. "text": ONLY identify "text" if there is ACTUAL readable written typography/lettering visibly rendered in the image.
+         CRITICAL: If the image does NOT contain readable text, DO NOT produce ANY "text" layers. Never invent words or placeholder slogans.
       5. "graphic_element": Identify distinct decorative shapes, vector badges, logos, stickers, or framing accents that are visibly distinct.
-      6. Precise Bounding Boxes: Each [ymin, xmin, ymax, xmax] MUST accurately bound the actual visible boundaries of THAT SPECIFIC element on a 0-1000 integer scale.
-         - ymin: top coordinate (0 = top of image, 1000 = bottom)
-         - xmin: left coordinate (0 = left edge, 1000 = right edge)
-         - ymax: bottom coordinate
-         - xmax: right coordinate
-         Ensure boundaries fit snugly around the identified item.
-      7. Accurate Labeling: The "label" MUST faithfully describe what is actually in the box (e.g., "Person Reading Book", "Open Book on Chest", "Dark Blue Background"). DO NOT use generic template placeholders.
-      8. Color Palette: For each layer, extract 1 to 3 dominant hex colors in "color_palette".
+      
+      6. MANDATORY BOUNDING BOX COORDINATES:
+         Each [ymin, xmin, ymax, xmax] MUST accurately bound the actual visible boundaries of THAT SPECIFIC element on a normalized 0 to 1000 integer scale:
+         - ymin: top coordinate (integer from 0 to 1000, where 0 = top of image)
+         - xmin: left coordinate (integer from 0 to 1000, where 0 = left edge)
+         - ymax: bottom coordinate (integer from 0 to 1000, where 1000 = bottom edge)
+         - xmax: right coordinate (integer from 0 to 1000, where 1000 = right edge)
+         - DO NOT output pixel dimensions like 1920 or 1080.
+         - DO NOT output decimal floats like 0.25. Use integers from 0 to 1000.
+         - Ensure boundaries fit snugly around the identified item.
+      7. Accurate Labeling: The "label" MUST faithfully describe what is actually in the box (e.g., "Person in Blue Jacket", "Orange Cat", "Ocean Background"). DO NOT use generic template placeholders.
+      8. Color Palette: For each layer, extract 1 to 3 dominant hex colors in "color_palette" (e.g. ["#0EA5E9", "#0F172A"]).
       9. Text OCR: If category is "text", transcribe the exact characters into "ocr_text".
     `;
 
@@ -348,7 +290,7 @@ app.post(["/api/gemini/analyze", "/api/analyze"], async (req, res) => {
       }
 
       if (text.trim().startsWith("```")) {
-        text = text.replace(/^```(json)?\s*/, "").replace(/\s*```$/, "");
+        text = text.replace(/^```(json)?\s*/i, "").replace(/\s*```$/, "");
       }
 
       const parsed = JSON.parse(text);
@@ -358,24 +300,24 @@ app.post(["/api/gemini/analyze", "/api/analyze"], async (req, res) => {
 
       // Sanitize coordinates and ensure valid bounding boxes
       const sanitized = parsed.map((item: any, idx: number) => {
-        let box = Array.isArray(item.box_2d) && item.box_2d.length === 4
-          ? item.box_2d.map((v: any) => Math.round(Number(v) || 0))
-          : [0, 0, 1000, 1000];
-        
-        let ymin = Math.max(0, Math.min(1000, box[0]));
-        let xmin = Math.max(0, Math.min(1000, box[1]));
-        let ymax = Math.max(0, Math.min(1000, box[2]));
-        let xmax = Math.max(0, Math.min(1000, box[3]));
-        
-        if (ymax <= ymin) ymax = Math.min(1000, ymin + 100);
-        if (xmax <= xmin) xmax = Math.min(1000, xmin + 100);
+        const [ymin, xmin, ymax, xmax] = normalizeBoundingBox(item.box_2d, parsed);
 
         const label = String(item.label || `Layer ${idx + 1}`).trim();
         const category = ["object", "text", "background", "graphic_element", "composition"].includes(item.category)
           ? item.category
           : "object";
         const visual_prompt = String(item.visual_prompt || `Visual asset representing ${label}`).trim();
-        const color_palette = Array.isArray(item.color_palette) ? item.color_palette.slice(0, 3) : undefined;
+        
+        // Clean color palette to ensure valid 6-char hex strings
+        let color_palette: string[] | undefined = undefined;
+        if (Array.isArray(item.color_palette) && item.color_palette.length > 0) {
+          color_palette = item.color_palette
+            .map((c: any) => String(c).trim().toUpperCase())
+            .filter((c: string) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(c))
+            .slice(0, 3);
+          if (color_palette.length === 0) color_palette = undefined;
+        }
+
         const ocr_text = typeof item.ocr_text === "string" && item.ocr_text.trim().length > 0 ? item.ocr_text.trim() : undefined;
         const confidence = typeof item.confidence === "number" ? Math.max(0, Math.min(1, item.confidence)) : 0.95;
         const semantic_role = typeof item.semantic_role === "string" && item.semantic_role.trim().length > 0
@@ -427,338 +369,16 @@ app.post(["/api/gemini/analyze", "/api/analyze"], async (req, res) => {
 
       res.json(sanitized);
     } catch (apiError: any) {
-      console.warn("Gemini Analysis failed across all models, serving resilient fallback layers:", apiError?.message || apiError);
-      const fallback = generateFallbackLayers(base64Image, mimeType);
-      res.setHeader("X-Decomposition-Fallback", "true");
-      res.json(fallback);
+      console.error("Gemini Analysis failed across all vision models:", apiError?.message || apiError);
+      res.status(503).json({
+        error: "AI image deconstruction is temporarily unavailable. Please try again in a few moments."
+      });
     }
   } catch (error: any) {
-    console.warn("Gemini Analysis Outer Error on server, serving resilient fallback layers:", error?.message || error);
-    const fallback = generateFallbackLayers();
-    res.setHeader("X-Decomposition-Fallback", "true");
-    res.json(fallback);
-  }
-});
-
-// Helper to generate a styled dynamic SVG image when Gemini Image Generation API fails or has no quota
-function generateFallbackImage(prompt: string): string {
-  const cleanPrompt = prompt.replace(/[^\w\s-]/gi, '').trim();
-  const words = cleanPrompt.split(/\s+/).filter(w => w.length > 2);
-  const title = words.slice(0, 4).join(' ') || "Custom Asset";
-  
-  // Choose theme colors based on terms in the prompt
-  let primaryColor = "#3b82f6"; // Blue
-  let secondaryColor = "#1d4ed8";
-  
-  const lowerPrompt = prompt.toLowerCase();
-  if (lowerPrompt.includes("red") || lowerPrompt.includes("rose") || lowerPrompt.includes("cherry") || lowerPrompt.includes("strawberry") || lowerPrompt.includes("ruby")) {
-    primaryColor = "#ef4444";
-    secondaryColor = "#991b1b";
-  } else if (lowerPrompt.includes("green") || lowerPrompt.includes("forest") || lowerPrompt.includes("nature") || lowerPrompt.includes("emerald") || lowerPrompt.includes("mint") || lowerPrompt.includes("leaf")) {
-    primaryColor = "#10b981";
-    secondaryColor = "#065f46";
-  } else if (lowerPrompt.includes("yellow") || lowerPrompt.includes("gold") || lowerPrompt.includes("sun") || lowerPrompt.includes("star") || lowerPrompt.includes("amber")) {
-    primaryColor = "#f59e0b";
-    secondaryColor = "#b45309";
-  } else if (lowerPrompt.includes("dark") || lowerPrompt.includes("black") || lowerPrompt.includes("night") || lowerPrompt.includes("shadow") || lowerPrompt.includes("midnight")) {
-    primaryColor = "#334155";
-    secondaryColor = "#0f172a";
-  } else if (lowerPrompt.includes("orange") || lowerPrompt.includes("sunset") || lowerPrompt.includes("fire") || lowerPrompt.includes("coral")) {
-    primaryColor = "#f97316";
-    secondaryColor = "#c2410c";
-  } else if (lowerPrompt.includes("purple") || lowerPrompt.includes("violet") || lowerPrompt.includes("lavender") || lowerPrompt.includes("cyberpunk")) {
-    primaryColor = "#8b5cf6";
-    secondaryColor = "#581c87";
-  } else if (lowerPrompt.includes("pink") || lowerPrompt.includes("bubblegum") || lowerPrompt.includes("magenta") || lowerPrompt.includes("donut") || lowerPrompt.includes("sweet")) {
-    primaryColor = "#ec4899";
-    secondaryColor = "#9d174d";
-  } else if (lowerPrompt.includes("cyan") || lowerPrompt.includes("sky") || lowerPrompt.includes("ocean") || lowerPrompt.includes("water") || lowerPrompt.includes("aqua")) {
-    primaryColor = "#06b6d4";
-    secondaryColor = "#0e7490";
-  }
-  
-  const isBackground = lowerPrompt.includes("background") || lowerPrompt.includes("scene") || lowerPrompt.includes("landscape") || lowerPrompt.includes("backdrop") || lowerPrompt.includes("composition");
-  
-  let svgContent = "";
-  if (isBackground) {
-    // Elegant abstract vector landscape
-    svgContent = `
-      <svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="${primaryColor}" />
-            <stop offset="100%" stop-color="${secondaryColor}" />
-          </linearGradient>
-          <radialGradient id="glow" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#bgGrad)" />
-        <rect width="100%" height="100%" fill="url(#glow)" />
-        <circle cx="400" cy="300" r="180" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-dasharray="6 6"/>
-        <circle cx="400" cy="300" r="120" fill="rgba(255,255,255,0.06)" />
-        <text x="400" y="305" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" fill="#ffffff" font-weight="700" text-anchor="middle" letter-spacing="1">${title}</text>
-      </svg>
-    `;
-  } else {
-    // Stylized isolated vector asset badge
-    svgContent = `
-      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="artGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="${primaryColor}" />
-            <stop offset="100%" stop-color="${secondaryColor}" />
-          </linearGradient>
-          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="16" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-        
-        <circle cx="256" cy="256" r="190" fill="url(#artGrad)" filter="url(#softGlow)" opacity="0.9"/>
-        <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-dasharray="8 8"/>
-        
-        <!-- Icon spark -->
-        <circle cx="256" cy="210" r="28" fill="rgba(255,255,255,0.2)"/>
-        <path d="M256 190 L256 230 M236 210 L276 210" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
-        <text x="256" y="295" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" fill="#ffffff" font-weight="800" text-anchor="middle" letter-spacing="0.5">${title}</text>
-        <text x="256" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="rgba(255,255,255,0.8)" font-weight="600" text-anchor="middle">AI GENERATED LAYER</text>
-      </svg>
-    `;
-  }
-  
-  const base64 = Buffer.from(svgContent.trim()).toString('base64');
-  return `data:image/svg+xml;base64,${base64}`;
-}
-
-// API route: generate-image
-app.post(["/api/gemini/generate-image", "/api/generate-image"], async (req, res) => {
-  try {
-    const apiKey = getApiKey();
-    const { prompt, base64Reference, mimeType, layerType, aspectRatio } = req.body;
-
-    if (!prompt) {
-      res.status(400).json({ error: "Missing prompt in request body" });
-      return;
-    }
-
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        }
-      }
+    console.error("Gemini Analysis Outer Error on server:", error?.message || error);
+    res.status(500).json({
+      error: error?.message || "Failed to process image analysis"
     });
-
-    const validAspectRatios = ["1:1", "3:4", "4:3", "9:16", "16:9"];
-    const targetAspectRatio = validAspectRatios.includes(aspectRatio) ? aspectRatio : "1:1";
-    const cleanedUserPrompt = prompt.trim();
-
-    console.log(`[generate-image] Processing request with prompt: "${cleanedUserPrompt}" (aspect: ${targetAspectRatio}, hasReference: ${!!base64Reference})`);
-
-    // Multimodal payload (image-to-image with user edit instruction)
-    const multimodalParts: any[] = [];
-    if (base64Reference) {
-      multimodalParts.push({
-        inlineData: {
-          mimeType: mimeType || 'image/png',
-          data: base64Reference,
-        }
-      });
-      multimodalParts.push({
-        text: `Generate a new, clean, high-resolution isolated asset based on this subject. Apply all of these exact prompt edits and style instructions: "${cleanedUserPrompt}". Ensure all requested changes, colors, objects, materials, and styling are clearly applied.`
-      });
-    }
-
-    // Pure text-to-image payload (with user edit prompt)
-    const textOnlyParts: any[] = [
-      {
-        text: `A high quality, isolated graphic design element on a transparent or clean studio background: ${cleanedUserPrompt}`
-      }
-    ];
-
-    // Pipeline 1: gemini-3.1-flash-lite-image (multimodal if reference exists)
-    if (base64Reference) {
-      try {
-        console.log("[generate-image] Attempting Tier 1A: gemini-3.1-flash-lite-image (multimodal edit)");
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-lite-image',
-          contents: { parts: multimodalParts },
-          config: {
-            imageConfig: { aspectRatio: targetAspectRatio }
-          }
-        });
-
-        if (response.candidates?.[0]?.content?.parts) {
-          for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData && part.inlineData.data) {
-              const outMime = part.inlineData.mimeType || 'image/png';
-              console.log("[generate-image] Success via Tier 1A (gemini-3.1-flash-lite-image multimodal)");
-              res.json({ imageSrc: `data:${outMime};base64,${part.inlineData.data}` });
-              return;
-            }
-          }
-        }
-      } catch (err: any) {
-        console.warn("[generate-image] Tier 1A failed:", err.message || err);
-      }
-    }
-
-    // Pipeline 2: gemini-3.1-flash-lite-image (pure text-to-image with edited prompt)
-    try {
-      console.log("[generate-image] Attempting Tier 1B: gemini-3.1-flash-lite-image (text-to-image)");
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite-image',
-        contents: { parts: textOnlyParts },
-        config: {
-          imageConfig: { aspectRatio: targetAspectRatio }
-        }
-      });
-
-      if (response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData && part.inlineData.data) {
-            const outMime = part.inlineData.mimeType || 'image/png';
-            console.log("[generate-image] Success via Tier 1B (gemini-3.1-flash-lite-image text-to-image)");
-            res.json({ imageSrc: `data:${outMime};base64,${part.inlineData.data}` });
-            return;
-          }
-        }
-      }
-    } catch (err: any) {
-      console.warn("[generate-image] Tier 1B failed:", err.message || err);
-    }
-
-    // Pipeline 3: gemini-3.1-flash-image (high-res model)
-    try {
-      console.log("[generate-image] Attempting Tier 2: gemini-3.1-flash-image");
-      const partsToUse = (base64Reference && multimodalParts.length > 0) ? multimodalParts : textOnlyParts;
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-image',
-        contents: { parts: partsToUse },
-        config: {
-          imageConfig: {
-            aspectRatio: targetAspectRatio,
-            imageSize: "1K"
-          }
-        }
-      });
-
-      if (response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData && part.inlineData.data) {
-            const outMime = part.inlineData.mimeType || 'image/png';
-            console.log("[generate-image] Success via Tier 2 (gemini-3.1-flash-image)");
-            res.json({ imageSrc: `data:${outMime};base64,${part.inlineData.data}` });
-            return;
-          }
-        }
-      }
-    } catch (err: any) {
-      console.warn("[generate-image] Tier 2 failed:", err.message || err);
-    }
-
-    // Pipeline 4: Imagen 3 (imagen-3.0-generate-002)
-    try {
-      console.log("[generate-image] Attempting Tier 3: imagen-3.0-generate-002");
-      const imagenResp = await ai.models.generateImages({
-        model: 'imagen-3.0-generate-002',
-        prompt: `Isolated graphic asset, clean background: ${cleanedUserPrompt}`,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/png',
-          aspectRatio: targetAspectRatio as any,
-        },
-      });
-
-      if (imagenResp.generatedImages?.[0]?.image?.imageBytes) {
-        console.log("[generate-image] Success via Tier 3 (Imagen 3)");
-        res.json({ imageSrc: `data:image/png;base64,${imagenResp.generatedImages[0].image.imageBytes}` });
-        return;
-      }
-    } catch (imagenError: any) {
-      console.warn("[generate-image] Tier 3 (Imagen 3) failed:", imagenError.message || imagenError);
-    }
-
-    // Tier 4: Free AI Image Generation Models (Flux / Turbo / SDXL - No API Key or Billing Required)
-    try {
-      console.log("[generate-image] Attempting Tier 4: Free AI Model (Flux/SDXL)");
-      let width = 768;
-      let height = 768;
-      if (targetAspectRatio === "16:9") { width = 1024; height = 576; }
-      else if (targetAspectRatio === "9:16") { width = 576; height = 1024; }
-      else if (targetAspectRatio === "4:3") { width = 800; height = 600; }
-      else if (targetAspectRatio === "3:4") { width = 600; height = 800; }
-
-      const enhancedPrompt = `${cleanedUserPrompt}, high resolution, detailed, isolated element`;
-      const seed = Math.floor(Math.random() * 10000000);
-      
-      // Try Flux first
-      const freeModelUrls = [
-        `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&seed=${seed}`,
-        `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${width}&height=${height}&model=turbo&nologo=true&seed=${seed}`,
-        `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanedUserPrompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}`
-      ];
-
-      for (const freeUrl of freeModelUrls) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000);
-          
-          const freeResp = await fetch(freeUrl, { 
-            signal: controller.signal,
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            }
-          });
-          clearTimeout(timeoutId);
-
-          if (freeResp.ok) {
-            const arrayBuffer = await freeResp.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            if (buffer.length > 5000) { // Valid image payload
-              const mime = freeResp.headers.get('content-type') || 'image/jpeg';
-              console.log("[generate-image] Success via Free AI Model Tier!");
-              res.json({ 
-                imageSrc: `data:${mime};base64,${buffer.toString('base64')}`,
-                isFreeModel: true,
-                message: "Generated using Free High-Resolution AI model"
-              });
-              return;
-            }
-          }
-        } catch (singleErr: any) {
-          console.warn("[generate-image] Free model endpoint retry:", singleErr.message || singleErr);
-        }
-      }
-    } catch (freeErr: any) {
-      console.warn("[generate-image] Tier 4 (Free AI Model) failed:", freeErr.message || freeErr);
-    }
-
-    // Tier 5: High-Res Reference Crop (if available)
-    if (base64Reference) {
-      res.json({ 
-        imageSrc: `data:${mimeType || 'image/png'};base64,${base64Reference}`,
-        isFallback: true,
-        message: "Using high-resolution layer crop as fallback."
-      });
-      return;
-    }
-
-    // Tier 6: Clean stylized graphic fallback reflecting prompt
-    console.log("[generate-image] Generating styled fallback graphic from prompt");
-    const fallbackSrc = generateFallbackImage(cleanedUserPrompt);
-    res.json({ 
-      imageSrc: fallbackSrc, 
-      isFallback: true, 
-      message: "Generated custom asset layer from prompt." 
-    });
-
-  } catch (error: any) {
-    console.error("Gemini Generation Outer Error on server:", error);
-    res.status(500).json({ error: error.message || String(error) });
   }
 });
 

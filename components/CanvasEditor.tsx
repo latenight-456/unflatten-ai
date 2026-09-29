@@ -33,7 +33,6 @@ interface CanvasEditorProps {
   palette?: DeducedPalette;
   selectedColorHex?: string | null;
   onSelectLayer: (id: string | null, multi: boolean) => void;
-  onGenerateLayer: (layerId: string, prompt: string) => void;
   onUpdatePrompt: (layerId: string, newPrompt: string) => void;
   onShufflePrompt: (layerId: string) => void;
   onDownloadLayer: (layer: Layer) => void;
@@ -53,7 +52,6 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({
   palette,
   selectedColorHex,
   onSelectLayer,
-  onGenerateLayer,
   onUpdatePrompt,
   onShufflePrompt,
   onDownloadLayer,
@@ -436,9 +434,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({
                   <img 
                     src={layer.imageSrc} 
                     alt={layer.name}
-                    className={`w-full h-full object-contain pointer-events-none ${
-                      layer.isGenerating ? 'opacity-50 animate-pulse' : ''
-                    }`} 
+                    className="w-full h-full object-contain pointer-events-none" 
                     draggable={false} 
                   />
                 </div>

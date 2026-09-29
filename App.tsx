@@ -8,7 +8,6 @@ import { WorkspaceSidePanel, WorkspaceTab } from './components/WorkspaceSidePane
 import { AppState, ImageMetadata, Layer, DetectedElement, LayerType, Project, DeducedPalette } from './types';
 import { 
   analyzeImageStructure, 
-  generateElementImage, 
   regeneratePrompt, 
   mergeLayerPrompts, 
   reanalyzeLayer,
@@ -75,9 +74,8 @@ export default function App() {
   const [isZipping, setIsZipping] = useState(false);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('composition');
-  const [activeTab, setActiveTab] = useState<'layers' | 'generated'>('layers');
+  const [activeTab, setActiveTab] = useState<'layers' | 'json'>('layers');
   const [isShuffling, setIsShuffling] = useState<string | null>(null);
-  const [isMerging, setIsMerging] = useState(false);
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
@@ -290,62 +288,6 @@ export default function App() {
     }
   };
 
-  const handleMergeAndGenerate = async () => {
-    if (selectedLayerIds.length < 2) return;
-    const selectedLayers = layers.filter(l => selectedLayerIds.includes(l.id));
-    
-    setIsMerging(true);
-    try {
-      const boxes = selectedLayers.map(l => l.box);
-      const ymin = Math.min(...boxes.map(b => b.ymin));
-      const xmin = Math.min(...boxes.map(b => b.xmin));
-      const ymax = Math.max(...boxes.map(b => b.ymax));
-      const xmax = Math.max(...boxes.map(b => b.xmax));
-
-      const prompts = selectedLayers.map(l => l.visual_prompt || l.name);
-      const compoundPrompt = await mergeLayerPrompts(prompts);
-      const newImageSrc = await generateElementImage(compoundPrompt);
-
-      const newLayerId = `merge-${Date.now()}`;
-      const newLayer: Layer = {
-        id: newLayerId,
-        name: `Group: ${selectedLayers.map(l => l.name).join(', ').substring(0, 20)}...`,
-        type: LayerType.GENERATED,
-        isVisible: true,
-        box: { ymin, xmin, ymax, xmax },
-        imageSrc: newImageSrc,
-        originalX: Math.min(...selectedLayers.map(l => l.originalX)),
-        originalY: Math.min(...selectedLayers.map(l => l.originalY)),
-        width: Math.max(...selectedLayers.map(l => l.originalX + l.width)) - Math.min(...selectedLayers.map(l => l.originalX)),
-        height: Math.max(...selectedLayers.map(l => l.originalY + l.height)) - Math.min(...selectedLayers.map(l => l.originalY)),
-        visual_prompt: compoundPrompt,
-        isGenerated: true,
-      };
-
-      const updatedLayers = [...layers, newLayer];
-      setLayers(updatedLayers);
-      setActiveTab('generated');
-      setSelectedLayerIds([newLayerId]);
-      
-      if (currentProjectId && imageMetadata) {
-        saveProject({
-          id: currentProjectId,
-          name: currentProjectId,
-          timestamp: Date.now(),
-          imageMetadata,
-          layers: updatedLayers,
-          palette: palette || undefined
-        }).then(() => loadRecentProjects());
-      }
-
-    } catch (err) {
-      console.error("Merge error:", err);
-      alert("Failed to merge and generate.");
-    } finally {
-      setIsMerging(false);
-    }
-  };
-
   const handleLayerMove = (id: string, x: number, y: number) => {
     setLayers(prev => prev.map(l => l.id === id ? { ...l, originalX: x, originalY: y } : l));
   };
@@ -387,66 +329,6 @@ export default function App() {
       console.error(e);
     } finally {
       setIsZipping(false);
-    }
-  };
-
-  const handleGenerateLayer = async (layerId: string, prompt: string) => {
-    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isGenerating: true } : l));
-    try {
-      const sourceLayer = layers.find(l => l.id === layerId);
-      if (!sourceLayer) throw new Error("Source layer not found");
-
-      let aspect = "1:1";
-      if (sourceLayer.width && sourceLayer.height) {
-        const ratio = sourceLayer.width / sourceLayer.height;
-        if (ratio > 1.4) aspect = "16:9";
-        else if (ratio < 0.65) aspect = "9:16";
-        else if (ratio > 1.15) aspect = "4:3";
-        else if (ratio < 0.85) aspect = "3:4";
-        else aspect = "1:1";
-      }
-
-      const newImageSrc = await generateElementImage(
-        prompt,
-        sourceLayer.imageSrc,
-        sourceLayer.type,
-        aspect
-      );
-
-      const newLayerId = `gen-${layerId.substring(0, 8)}-${Date.now()}`;
-      const newLayer: Layer = {
-        ...sourceLayer,
-        id: newLayerId,
-        name: `Generated ${sourceLayer.name}`,
-        type: LayerType.GENERATED,
-        imageSrc: newImageSrc,
-        isVisible: true,
-        isGenerating: false,
-        isGenerated: true,
-        parentId: layerId,
-        visual_prompt: prompt 
-      };
-      
-      setLayers(prev => {
-        const updated = prev.map(l => l.id === layerId ? { ...l, isGenerating: false } : l);
-        const nextLayers = [...updated, newLayer];
-        if (currentProjectId && imageMetadata) {
-          saveProject({
-            id: currentProjectId,
-            name: currentProjectId,
-            timestamp: Date.now(),
-            imageMetadata,
-            layers: nextLayers,
-            palette: palette || undefined
-          }).then(() => loadRecentProjects());
-        }
-        return nextLayers;
-      });
-      setActiveTab('generated');
-      setSelectedLayerIds([newLayerId]);
-    } catch (err) {
-      console.error(err);
-      setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isGenerating: false } : l));
     }
   };
 
@@ -892,7 +774,6 @@ export default function App() {
                 palette={palette || undefined}
                 selectedColorHex={selectedColorHex}
                 onSelectLayer={handleSelectLayer}
-                onGenerateLayer={handleGenerateLayer}
                 onUpdatePrompt={handleUpdatePrompt}
                 onShufflePrompt={handleShufflePrompt}
                 onDownloadLayer={downloadLayer}
@@ -917,8 +798,6 @@ export default function App() {
               onSelectLayer={handleSelectLayer}
               onToggleVisibility={(id) => setLayers(prev => prev.map(l => l.id === id ? { ...l, isVisible: !l.isVisible } : l))}
               onDownloadLayer={downloadLayer}
-              onMergeAndGenerate={handleMergeAndGenerate}
-              isMerging={isMerging}
               onReanalyzeLayer={handleReanalyzeLayer}
               onSelectColor={setSelectedColorHex}
               onApplyColorToPrompt={handleApplyColorToPrompt}
@@ -927,7 +806,6 @@ export default function App() {
               isRededucingPalette={isRededucingPalette}
               onUpdatePrompt={handleUpdatePrompt}
               onShufflePrompt={handleShufflePrompt}
-              onGenerateLayer={handleGenerateLayer}
               isShuffling={isShuffling}
               imageMetadata={imageMetadata}
             />

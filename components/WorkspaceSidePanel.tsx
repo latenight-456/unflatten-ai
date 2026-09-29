@@ -34,8 +34,6 @@ interface WorkspaceSidePanelProps {
   onSelectLayer: (id: string, multi: boolean) => void;
   onToggleVisibility: (id: string) => void;
   onDownloadLayer: (layer: Layer) => void;
-  onMergeAndGenerate: () => void;
-  isMerging: boolean;
   onReanalyzeLayer?: (id: string) => void;
   onSelectColor: (hex: string | null) => void;
   onApplyColorToPrompt?: (hex: string, colorName: string) => void;
@@ -44,7 +42,6 @@ interface WorkspaceSidePanelProps {
   isRededucingPalette?: boolean;
   onUpdatePrompt: (layerId: string, newPrompt: string) => void;
   onShufflePrompt: (layerId: string) => void;
-  onGenerateLayer: (layerId: string, prompt: string) => void;
   isShuffling?: string | null;
   imageMetadata?: ImageMetadata | null;
 }
@@ -178,8 +175,6 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
   onSelectLayer,
   onToggleVisibility,
   onDownloadLayer,
-  onMergeAndGenerate,
-  isMerging,
   onReanalyzeLayer,
   onSelectColor,
   onApplyColorToPrompt,
@@ -188,11 +183,10 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
   isRededucingPalette,
   onUpdatePrompt,
   onShufflePrompt,
-  onGenerateLayer,
   isShuffling,
   imageMetadata
 }) => {
-  const [layersSubTab, setLayersSubTab] = useState<'layers' | 'json' | 'generated'>('layers');
+  const [layersSubTab, setLayersSubTab] = useState<'layers' | 'json'>('layers');
   const [promptStructure, setPromptStructure] = useState<MasterPromptStructure>('flyer_9_16');
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
@@ -345,20 +339,12 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
     }
   };
 
-  const handleGenerate = () => {
-    if (compositionLayer) {
-      const fullPrompt = getEffectivePrompt();
-      onGenerateLayer(compositionLayer.id, fullPrompt);
-    }
-  };
-
   const handleShuffle = () => {
     if (compositionLayer) {
       onShufflePrompt(compositionLayer.id);
     }
   };
 
-  const isGeneratingComp = compositionLayer?.isGenerating || false;
   const isShufflingComp = isShuffling === compositionLayer?.id;
 
   const paletteCount = palette?.colors?.length ?? 4;
@@ -837,20 +823,22 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
             {/* Pinned Bottom Actions */}
             <div className="p-3.5 border-t border-dark-800 bg-[#0f1117] space-y-2 mt-auto shrink-0 shadow-lg">
               <button
-                id="sidepanel-generate-btn"
+                id="sidepanel-copy-main-btn"
                 type="button"
-                onClick={handleGenerate}
-                disabled={isGeneratingComp}
-                className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-brand-500/25 transition-all active:scale-[0.98] cursor-pointer"
+                onClick={handleCopyPrompt}
+                className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-brand-500/25 transition-all active:scale-[0.98] cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>
-                  {isGeneratingComp 
-                    ? "Generating Artwork..." 
-                    : promptStructure === 'flyer_9_16'
-                      ? "Generate 9:16 Flyer Artwork"
-                      : "Generate Artwork"}
-                </span>
+                {copiedPrompt ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-white" />
+                    <span>Copied Prompt to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-white" />
+                    <span>Copy Master Prompt</span>
+                  </>
+                )}
               </button>
 
               <div className="grid grid-cols-2 gap-2">
@@ -913,8 +901,6 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
               onDownloadLayer={onDownloadLayer}
               activeTab={layersSubTab}
               onTabChange={setLayersSubTab}
-              onMergeAndGenerate={onMergeAndGenerate}
-              isMerging={isMerging}
               onReanalyzeLayer={onReanalyzeLayer}
               imageMetadata={imageMetadata}
               palette={palette}
@@ -937,12 +923,6 @@ export const WorkspaceSidePanel: React.FC<WorkspaceSidePanelProps> = ({
             }
           }
         }}
-        onGeneratePrompt={(promptToGen) => {
-          if (compositionLayer) {
-            onGenerateLayer(compositionLayer.id, promptToGen);
-          }
-        }}
-        isGenerating={isGeneratingComp}
         layers={layers}
         palette={palette}
         activeStructure={promptStructure}

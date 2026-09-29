@@ -51,58 +51,6 @@ export const analyzeImageStructure = async (
   }
 };
 
-export const generateElementImage = async (
-  prompt: string,
-  referenceImageSrc?: string,
-  layerType?: string,
-  aspectRatio?: string
-): Promise<string> => {
-  try {
-    let base64Reference: string | undefined = undefined;
-    let mimeType: string | undefined = undefined;
-
-    if (referenceImageSrc) {
-      const inputDataUrl = referenceImageSrc.startsWith("data:")
-        ? referenceImageSrc
-        : `data:image/jpeg;base64,${referenceImageSrc}`;
-      const downscaled = await downscaleForApi(inputDataUrl);
-      mimeType = downscaled.mimeType;
-      base64Reference = downscaled.dataUrl.includes(",")
-        ? downscaled.dataUrl.split(",")[1]
-        : downscaled.dataUrl;
-    }
-
-    const response = await fetch("/api/gemini/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
-        prompt, 
-        base64Reference, 
-        mimeType, 
-        layerType,
-        aspectRatio 
-      }),
-    });
-
-    if (response.status === 413) {
-      throw new Error("Image too large. Try a smaller image.");
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.imageSrc;
-  } catch (error) {
-    console.error("Gemini Generation Error:", error);
-    throw error;
-  }
-};
-
 export const regeneratePrompt = async (currentPrompt: string, layerType: string): Promise<string> => {
   try {
     const response = await fetch("/api/gemini/regenerate-prompt", {
